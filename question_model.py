@@ -42,22 +42,27 @@ st.chat_message("assistant").markdown("Hello there!! I am Aravind (kind of). Ask
 if 'history' not in st.session_state:
     st.session_state.history = []
 
-user_input = st.text_input("You: ", "")
+for message in st.session_state.history:
+    with st.chat_message(message["role"]):
+        st.markdown(message["message"])
+    
 
-if user_input:
+if user_input:= st.chat_input("Ask me Something!"):
+    with st.chat_message("user"):
+        st.markdown(user_input)
+
     st.session_state.history.append({"role": "user", "message": user_input})
 
+try:
     answer = generate_text(user_input, max_length=150)
-
+    
     answer = answer.split("?")[-1].strip()
     answer = answer.replace(user_input, "")
     answer = re.sub(r'[^a-zA-Z0-9\s,-.!()]', '', answer)
     answer = correct_name(answer)
+except ValueError as e:
+    answer = "..."
 
-    st.session_state.history.append({"role": "bot", "message": answer})
-
-for message in st.session_state.history:
-    if message["role"] == "user":
-        st.chat_message("user").markdown(message["message"])
-    else:
-        st.chat_message("assistant").markdown(message["message"])
+with st.chat_message("bot"):
+    st.markdown(answer)
+st.session_state.history.append({"role": "bot", "message": answer})
